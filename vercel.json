@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/lichess.py": {
+      "runtime": "python3.11"
+    }
+  }
+}
