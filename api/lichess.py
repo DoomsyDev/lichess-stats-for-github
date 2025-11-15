@@ -1,13 +1,14 @@
 import io
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import json
 import pandas as pd
 import requests
+import re
 import pytz
 from datetime import datetime, time, timedelta
 
-# ----------------------------
-# Funções auxiliares
-# ----------------------------
 
 def start_end_today():
     tz = pytz.timezone("Europe/Lisbon")
@@ -26,9 +27,10 @@ def fetch_games(username, since, until):
     for line in r.iter_lines(decode_unicode=True):
         if line:
             try:
-                games.append(eval(line))  # NDJSON → dict
-            except:
-                pass
+                games.append(json.loads(line))  # NDJSON → dict, safer than eval
+            except Exception:
+                # skip malformed lines but continue processing
+                continue
     return games
 
 def process_games(games, username):
@@ -84,14 +86,19 @@ def build_plot(df, username):
     plt.tight_layout()
     return fig
 
-# ----------------------------
-# Função principal (Vercel entrypoint)
-# ----------------------------
 def main(request):
     # Recebe query string
     username = request.query.get("user")
     if not username:
         return ("Missing ?user=USERNAME", 400)
+
+    # Normalize and validate username
+    username = username.strip()
+    if username.startswith('@'):
+        username = username[1:]
+
+    if not re.match(r'^[A-Za-z0-9_-]{1,50}$', username):
+        return ("Invalid username format", 400)
 
     try:
         since, until = start_end_today()
@@ -103,6 +110,13 @@ def main(request):
         plt.savefig(buf, format="png")
         plt.close(fig)
         buf.seek(0)
-        return buf.read(), 200, {"Content-Type": "image/png"}
+
+        headers = {
+            "Content-Type": "image/png",
+            "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=30"
+        }
+        return buf.read(), 200, headers
     except Exception as e:
-        return (f"Error: {str(e)}", 500)
+        # Log the error server-side (Vercel will capture stdout)
+        print("Error in function:", str(e))
+        return (f"Error: {str(e)}", 500, {"Content-Type": "text/plain"})
