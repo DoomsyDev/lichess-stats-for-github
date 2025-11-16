@@ -27,9 +27,8 @@ def fetch_games(username, since, until):
     for line in r.iter_lines(decode_unicode=True):
         if line:
             try:
-                games.append(json.loads(line))  # NDJSON → dict, safer than eval
+                games.append(json.loads(line))
             except Exception:
-                # skip malformed lines but continue processing
                 continue
     return games
 
@@ -87,12 +86,10 @@ def build_plot(df, username):
     return fig
 
 def main(request):
-    # Recebe query string
     username = request.query.get("user")
     if not username:
         return ("Missing ?user=USERNAME", 400)
 
-    # Normalize and validate username
     username = username.strip()
     if username.startswith('@'):
         username = username[1:]
@@ -117,6 +114,5 @@ def main(request):
         }
         return buf.read(), 200, headers
     except Exception as e:
-        # Log the error server-side (Vercel will capture stdout)
         print("Error in function:", str(e))
         return (f"Error: {str(e)}", 500, {"Content-Type": "text/plain"})

@@ -1,6 +1,5 @@
 import os
 import sys
-# Ensure headless backend as a safeguard
 os.environ.setdefault('MPLBACKEND', 'Agg')
 
 from api import lichess
@@ -8,7 +7,6 @@ from api import lichess
 
 class Req:
     def __init__(self, user):
-        # emulate request.query.get("user")
         self.query = {'user': user}
 
 
@@ -18,7 +16,6 @@ def save_bytes_to_file(b, path):
 
 
 if __name__ == '__main__':
-    # Priority: command-line arg > TEST_USER env var > default
     import os
     import sys
     import argparse
@@ -31,7 +28,7 @@ if __name__ == '__main__':
     if args.user:
         user = args.user
     else:
-        user = os.environ.get('TEST_USER', 'asdasd') # substitua 'introduzir username aqui' pelo username desejado se nao usar argumentos
+        user = os.environ.get('TEST_USER', 'asdasd')
 
     req = Req(user)
     try:
@@ -43,7 +40,6 @@ if __name__ == '__main__':
         headers = None
 
         if isinstance(res, tuple):
-            # Common forms: (bytes, status, headers) or (body, status)
             if len(res) >= 1:
                 body = res[0]
             if len(res) >= 2:
@@ -57,7 +53,6 @@ if __name__ == '__main__':
         if headers:
             print('Headers:', headers)
 
-        # If body is bytes, optionally save
         if isinstance(body, (bytes, bytearray)):
             print('Received bytes output (image).')
             if args.save or os.environ.get('SAVE_OUTPUT') == '1':
