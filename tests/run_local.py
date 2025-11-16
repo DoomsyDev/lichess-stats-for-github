@@ -31,7 +31,7 @@ if __name__ == '__main__':
     if args.user:
         user = args.user
     else:
-        user = os.environ.get('TEST_USER', 'introduzir username aqui') # substitua 'introduzir username aqui' pelo username desejado
+        user = os.environ.get('TEST_USER', 'asdasd') # substitua 'introduzir username aqui' pelo username desejado se nao usar argumentos
 
     req = Req(user)
     try:
